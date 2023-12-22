@@ -4,7 +4,7 @@
              label-position="left">
 
       <div class="title-container">
-        <h3 class="title">Login Form</h3>
+        <h3 class="title">登录</h3>
       </div>
 
       <el-form-item prop="username">
@@ -43,7 +43,7 @@
       </el-form-item>
 
       <el-button :loading="loading" style="width:100%;margin-bottom:30px;" type="primary"
-                 @click.native.prevent="handleLogin">Login
+                 @click.native.prevent="handleLogin">登录
       </el-button>
 
       <div class="tips">
@@ -183,8 +183,9 @@ $light_gray: #eee;
 .login-container {
   min-height: 100%;
   width: 100%;
-  background-color: $bg;
   overflow: hidden;
+  background: url("~@/assets/guidao.jpg");
+  background-size: 100% 100%;
 
   .login-form {
     position: relative;
