@@ -3,6 +3,13 @@
 export default {
   name: 'tradeMark',
   data() {
+    var validateTmName = (rule, value, callback) => {
+      if (value.length < 2 || value.length > 10) {
+        callback(new Error('品牌名称长度在2-10之间'));
+      } else {
+        callback();
+      }
+    };
     return {
       page: 1,
       limit: 3,
@@ -12,6 +19,15 @@ export default {
       tmForm: {
         tmName: '',
         logoUrl: ''
+      },
+      rules: {
+        tmName: [
+          {required: true, message: '请输入品牌名称', trigger: 'blur'},
+          {validator: validateTmName, trigger: 'change'}
+        ],
+        logoUrl: [
+          {required: true, message: '请选择品牌图片'}
+        ]
       }
     }
   },
@@ -58,18 +74,47 @@ export default {
       }
       return isJPG && isLt2M;
     },
-    async addOrUpdateTradeMark() {
-      this.dialogFormVisible = false;
-      let result = await this.$API.tradeMark.reqAddOrUpdateTradeMark(this.tmForm);
-      if (result.code === 200) {
+    addOrUpdateTradeMark() {
+      this.$refs['ruleForm'].validate(async (success) => {
+        if (success) {
+          this.dialogFormVisible = false;
+          let result = await this.$API.tradeMark.reqAddOrUpdateTradeMark(this.tmForm);
+          if (result.code === 200) {
+            this.$message({
+              type: 'success',
+              message: this.tmForm.id ? '修改品牌成功' : '添加品牌成功'
+            });
+            this.getPageList(this.tmForm.id ? this.page : 1);
+          } else {
+            this.$message.error(result.message);
+          }
+        } else {
+          return false;
+        }
+      });
+    },
+    deleteTradeMark(row) {
+      this.$confirm(`你确定删除${row.tmName}?`, '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(async () => {
+        let result = await this.$API.tradeMark.reqDeleteTradeMark(row.id);
+        if (result.code === 200) {
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          });
+          this.getPageList(this.list.length > 1 ? this.page : this.page - 1);
+        } else {
+          this.$message.error(result.message);
+        }
+      }).catch(() => {
         this.$message({
-          type: 'success',
-          message: this.tmForm.id ? '修改品牌成功' : '添加品牌成功'
+          type: 'info',
+          message: '已取消删除'
         });
-        this.getPageList(this.tmForm.id ? this.page : 1);
-      } else {
-        this.$message.error(result.message);
-      }
+      });
     }
   }
 }
@@ -90,12 +135,13 @@ export default {
         <el-table-column label="操作" prop="prop" width="width">
           <template slot-scope="{row,$index}">
             <el-button icon="el-icon-edit" size="mini" type="warning" @click="updateTradeMark(row)">修改</el-button>
-            <el-button icon="el-icon-delete" size="mini" type="danger">删除</el-button>
+            <el-button icon="el-icon-delete" size="mini" type="danger" @click="deleteTradeMark(row)">删除</el-button>
           </template>
         </el-table-column>
       </el-table>
       <el-pagination
-        :current-page="page"
+        :current-page=" page
+            "
         :page-count="7"
         :page-size="limit"
         :page-sizes="[3, 5, 10]"
@@ -108,11 +154,11 @@ export default {
       </el-pagination>
 
       <el-dialog :title="this.tmForm.id ?'修改品牌':'添加品牌'" :visible.sync="dialogFormVisible">
-        <el-form :model="tmForm" style="width: 80%">
-          <el-form-item label="品牌名称" label-width="100px">
+        <el-form ref="ruleForm" :model="tmForm" :rules="rules" style="width: 80%">
+          <el-form-item label="品牌名称" label-width="100px" prop="tmName">
             <el-input v-model="tmForm.tmName" autocomplete="off"></el-input>
           </el-form-item>
-          <el-form-item label="品牌名称LOGO" label-width="100px">
+          <el-form-item label="品牌名称LOGO" label-width="100px" prop="logoUrl">
             <el-upload
               :before-upload="beforeAvatarUpload"
               :on-success="handleAvatarSuccess"
