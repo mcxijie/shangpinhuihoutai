@@ -21,7 +21,6 @@ export default {
   methods: {
     getCategoryId({categoryId, level}) {
       if (level === 1) {
-        console.log(categoryId);
         this.category1Id = categoryId;
         this.category2Id = "";
         this.category3Id = "";
@@ -45,7 +44,10 @@ export default {
         attrId: this.attrInfo.id,
         valueName: "",
         flag: true
-      })
+      });
+      this.$nextTick(() => {
+        this.$refs[this.attrInfo.attrValueList.length - 1].focus();
+      });
     },
     addAttr() {
       this.isShowTable = false;
@@ -59,6 +61,9 @@ export default {
     updateAttr(row) {
       this.isShowTable = false;
       this.attrInfo = cloneDeep(row);
+      this.attrInfo.attrValueList.forEach(item => {
+        this.$set(item, "flag", false);
+      });
     },
     toLook(row) {
       if (row.valueName.trim() === "") {
@@ -74,6 +79,37 @@ export default {
         return;
       }
       row.flag = false;
+    },
+    toEdit(row, index) {
+      row.flag = true;
+      this.$nextTick(() => {
+        this.$refs[index].focus();
+      });
+    },
+    deleteAttrValue(index) {
+      this.attrInfo.attrValueList.splice(index, 1);
+    },
+    async addOrUpdateAttr() {
+      this.attrInfo.attrValueList = this.attrInfo.attrValueList.filter(item => {
+        if (item.valueName !== "") {
+          delete item.flag;
+          return true;
+        }
+      });
+      try {
+        await this.$API.attr.reqAddOrUpdateAttr(this.attrInfo);
+        this.isShowTable = true;
+        this.$message({
+          type: "success",
+          message: "保存成功"
+        });
+        this.getAttrList();
+      } catch (error) {
+        this.$message({
+          type: "error",
+          message: "保存失败"
+        });
+      }
     }
   }
 }
@@ -95,7 +131,7 @@ export default {
           </el-table-column>
           <el-table-column label="属性值列表" prop="prop" width="width">
             <template slot-scope="{row,$index}">
-              <el-tag v-for="(attrValue,index) in row.attrValueList" :key="attrValue" style="margin: 0px 20px"
+              <el-tag v-for="(attrValue,index) in row.attrValueList" :key="attrValue.id" style="margin: 0px 20px"
                       type="success">{{ attrValue.valueName }}
               </el-tag>
             </template>
@@ -122,17 +158,19 @@ export default {
           <el-table-column label="属性值名称" prop="prop" width="width">
             <template slot-scope="{row,$index}">
               <el-input v-if="row.flag" v-model="row.valueName" placeholder="请输入属性值名称" size="mini"
-                        @blur="toLook(row)" @keyup.native.enter="toLook(row)"></el-input>
-              <span v-else style="display: block" @click="row.flag=true">{{ row.valueName }}</span>
+                        :ref="$index" @blur="toLook(row)" @keyup.native.enter="toLook(row)"></el-input>
+              <span v-else style="display: block" @click="toEdit(row,$index)">{{ row.valueName }}</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" prop="prop" width="width">
             <template slot-scope="{row,$index}">
-              <el-button icon="el-icon-delete" size="mini" type="danger"></el-button>
+              <el-popconfirm :title="`确定删除${row.valueName}?`" @onConfirm="deleteAttrValue($index)">
+                <el-button slot="reference" icon="el-icon-delete" size="mini" type="danger"></el-button>
+              </el-popconfirm>
             </template>
           </el-table-column>
         </el-table>
-        <el-button type="primary">保存</el-button>
+        <el-button type="primary" @click="addOrUpdateAttr">保存</el-button>
         <el-button @click="isShowTable = true">取消</el-button>
       </div>
     </el-card>
