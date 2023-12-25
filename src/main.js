@@ -12,6 +12,7 @@ import router from './router'
 import '@/icons' // icon
 import '@/permission' // permission control
 import API from "@/api"
+import CategorySelect from "@/components/CategorySelect/index.vue";
 
 if (process.env.NODE_ENV === 'production') {
   const {mockXHR} = require('../mock')
@@ -22,6 +23,7 @@ Vue.use(ElementUI, {locale})
 
 Vue.config.productionTip = false;
 Vue.prototype.$API = API;
+Vue.component("CategorySelect", CategorySelect);
 
 new Vue({
   el: '#app',
