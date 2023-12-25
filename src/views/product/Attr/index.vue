@@ -1,4 +1,6 @@
 <script>
+import cloneDeep from "lodash/cloneDeep";
+
 export default {
   name: 'Attr',
   data() {
@@ -7,7 +9,7 @@ export default {
       category2Id: "",
       category3Id: "",
       attrList: [],
-      isShowTable: false,
+      isShowTable: true,
       attrInfo: {
         attrName: "",
         attrValueList: [],
@@ -40,9 +42,38 @@ export default {
     },
     addAttrValue() {
       this.attrInfo.attrValueList.push({
-        attrId: undefined,
-        valueName: ""
+        attrId: this.attrInfo.id,
+        valueName: "",
+        flag: true
       })
+    },
+    addAttr() {
+      this.isShowTable = false;
+      this.attrInfo = {
+        attrName: "",
+        attrValueList: [],
+        categoryId: this.category3Id,
+        categoryLevel: 3,
+      }
+    },
+    updateAttr(row) {
+      this.isShowTable = false;
+      this.attrInfo = cloneDeep(row);
+    },
+    toLook(row) {
+      if (row.valueName.trim() === "") {
+        this.$message("请你输入正常属性值")
+        return;
+      }
+      let isRepat = this.attrInfo.attrValueList.some(item => {
+        if (row !== item) {
+          return row.valueName === item.valueName;
+        }
+      });
+      if (isRepat) {
+        return;
+      }
+      row.flag = false;
     }
   }
 }
@@ -55,7 +86,7 @@ export default {
     </el-card>
     <el-card>
       <div v-show="isShowTable">
-        <el-button :disabled="!category3Id" icon="el-icon-plus" type="primary" @click="isShowTable=false">添加属性
+        <el-button :disabled="!category3Id" icon="el-icon-plus" type="primary" @click="addAttr">添加属性
         </el-button>
         <el-table :data="attrList" border style="width: 100%">
           <el-table-column align="center" label="序号" type="index" width="80">
@@ -71,7 +102,7 @@ export default {
           </el-table-column>
           <el-table-column label="操作" prop="prop" width="150">
             <template slot-scope="{row,$index}">
-              <el-button icon="el-icon-edit" size="mini" type="warning" @click="isShowTable=false"></el-button>
+              <el-button icon="el-icon-edit" size="mini" type="warning" @click="updateAttr(row)"></el-button>
               <el-button icon="el-icon-delete" size="mini" type="danger"></el-button>
             </template>
           </el-table-column>
@@ -90,7 +121,9 @@ export default {
           <el-table-column align="center" label="序号" type="index" width="80"></el-table-column>
           <el-table-column label="属性值名称" prop="prop" width="width">
             <template slot-scope="{row,$index}">
-              <el-input v-model="row.valueName" placeholder="请输入属性值名称"></el-input>
+              <el-input v-if="row.flag" v-model="row.valueName" placeholder="请输入属性值名称" size="mini"
+                        @blur="toLook(row)" @keyup.native.enter="toLook(row)"></el-input>
+              <span v-else style="display: block" @click="row.flag=true">{{ row.valueName }}</span>
             </template>
           </el-table-column>
           <el-table-column label="操作" prop="prop" width="width">
