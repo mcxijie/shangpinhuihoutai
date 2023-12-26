@@ -118,7 +118,7 @@ export default {
 <template>
   <div>
     <el-card style="margin: 20px 0px">
-      <CategorySelect @getCategoryId="getCategoryId"></CategorySelect>
+      <CategorySelect :show="!isShowTable" @getCategoryId="getCategoryId"></CategorySelect>
     </el-card>
     <el-card>
       <div v-show="isShowTable">
@@ -170,7 +170,8 @@ export default {
             </template>
           </el-table-column>
         </el-table>
-        <el-button type="primary" @click="addOrUpdateAttr">保存</el-button>
+        <el-button :disabled="attrInfo.attrValueList.length < 1" type="primary" @click="addOrUpdateAttr">保存
+        </el-button>
         <el-button @click="isShowTable = true">取消</el-button>
       </div>
     </el-card>
