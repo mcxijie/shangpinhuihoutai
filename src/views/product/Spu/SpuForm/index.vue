@@ -1,19 +1,51 @@
 <script>
 export default {
-  name: "SpuForm",
+  name: 'SpuForm',
   data() {
     return {
       dialogImageUrl: '',
       dialogVisible: false,
-      spu: {},
+      spu: {
+        category3Id: 0,
+        description: "",
+        spuName: "",
+        tmId: "",
+        spuImageList: [
+          // {
+          //   id: 0,
+          //   imgName: "string",
+          //   imgUrl: "string",
+          //   spuId: 0,
+          // },
+        ],
+        spuSaleAttrList: [
+          // {
+          //   baseSaleAttrId: 0,
+          //   id: 0,
+          //   saleAttrName: "string",
+          //   spuId: 0,
+          //   spuSaleAttrValueList: [
+          //     {
+          //       baseSaleAttrId: 0,
+          //       id: 0,
+          //       isChecked: "string",
+          //       saleAttrName: "string",
+          //       saleAttrValueName: "string",
+          //       spuId: 0,
+          //     },
+          //   ],
+          // },
+        ],
+      },
       tradeMarkList: [],
       spuImageList: [],
-      saleAttrList: []
+      saleAttrList: [],
+      attrId: "",
     }
   },
   methods: {
     handleRemove(file, fileList) {
-      console.log(file, fileList);
+      this.spuImageList = fileList;
     },
     handlePictureCardPreview(file) {
       this.dialogImageUrl = file.url;
@@ -30,12 +62,29 @@ export default {
       }
       const spuImageResult = await this.$API.spu.reqSpuImageList(spu.id);
       if (spuImageResult.code === 200) {
-        this.spuImageList = spuImageResult.data;
+        let listArr = spuImageResult.data;
+        listArr.forEach(item => {
+          item.name = item.imgName;
+          item.url = item.imgUrl;
+        });
+        this.spuImageList = listArr;
       }
       const saleResult = await this.$API.spu.reqBaseSaleAttrList();
       if (saleResult.code === 200) {
         this.saleAttrList = saleResult.data;
       }
+    },
+    handlerSuccess(response, file, fileList) {
+      this.spuImageList = fileList;
+    },
+  },
+  computed: {
+    unSelectSaleAttr() {
+      return this.saleAttrList.filter(item => {
+        return this.spu.spuSaleAttrList.every(item1 => {
+          return item.name !== item1.saleAttrName;
+        })
+      });
     }
   }
 }
@@ -43,23 +92,25 @@ export default {
 
 <template>
   <div>
-    <el-form ref="form" label-width="80px">
+    <el-form ref="form" :model="spu" label-width="80px">
       <el-form-item label="SPU名称">
-        <el-input placeholder="SPU名称"></el-input>
+        <el-input v-model="spu.spuName" placeholder="SPU名称"></el-input>
       </el-form-item>
       <el-form-item label="品牌">
-        <el-select placeholder="请选择品牌" value="">
-          <el-option label="魅族" value="魅族"></el-option>
+        <el-select v-model="spu.tmId" placeholder="请选择品牌">
+          <el-option v-for="(tm,index) in tradeMarkList" :key="tm.id" :label="tm.tmName" :value="tm.id"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="SPU描述">
-        <el-input placeholder="描述" rows="4" type="textarea"></el-input>
+        <el-input v-model="spu.description" placeholder="描述" rows="4" type="textarea"></el-input>
       </el-form-item>
       <el-form-item label="SPU图片">
         <el-upload
           :on-preview="handlePictureCardPreview"
           :on-remove="handleRemove"
-          action="https://jsonplaceholder.typicode.com/posts/"
+          :file-list="spuImageList"
+          :on-success="handlerSuccess"
+          action="/dev-api/admin/product/fileUpload"
           list-type="picture-card">
           <i class="el-icon-plus"></i>
         </el-upload>
@@ -68,15 +119,30 @@ export default {
         </el-dialog>
       </el-form-item>
       <el-form-item label="销售属性">
-        <el-select placeholder="还有3未选择" value="">
-          <el-option label="颜色" value="颜色"></el-option>
+        <el-select v-model="attrId" :placeholder="`还有${unSelectSaleAttr.length}未选择`">
+          <el-option v-for="(unselect,index) in unSelectSaleAttr" :key="unselect.id" :label="unselect.name"
+                     :value="unselect.id"></el-option>
         </el-select>
-        <el-button icon="el-icon-plus" type="primary">添加销售属性</el-button>
-        <el-table border style="width: 100%">
+        <el-button :disabled="!attrId" icon="el-icon-plus" type="primary">添加销售属性</el-button>
+        <el-table :data="spu.spuSaleAttrList" border style="width: 100%">
           <el-table-column align="center" label="序号" type="index" width="80px"></el-table-column>
-          <el-table-column label="属性名" prop="prop" width="width"></el-table-column>
-          <el-table-column label="属性值名称列表" prop="prop" width="width"></el-table-column>
-          <el-table-column label="操作" prop="prop" width="width"></el-table-column>
+          <el-table-column label="属性名" prop="saleAttrName" width="width"></el-table-column>
+          <el-table-column label="属性值名称列表" prop="prop" width="width">
+            <template slot-scope="{row,$index}">
+              <el-tag v-for="tag in row.spuSaleAttrValueList" :key="tag.id" :disable-transitions="false" closable>
+                {{ tag.saleAttrValueName }}
+              </el-tag>
+              <el-input v-if="row.inputVisible" ref="saveTagInput" v-model="row.inputValue" class="input-new-tag"
+                        size="small">
+              </el-input>
+              <el-button v-else class="button-new-tag" size="small">添加</el-button>
+            </template>
+          </el-table-column>
+          <el-table-column label="操作" prop="prop" width="width">
+            <template slot-scope="{row,$index}">
+              <el-button icon="el-icon-delete" size="mini" type="danger"></el-button>
+            </template>
+          </el-table-column>
         </el-table>
       </el-form-item>
       <el-form-item>
@@ -87,6 +153,22 @@ export default {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style>
+.el-tag + .el-tag {
+  margin-left: 10px;
+}
 
+.button-new-tag {
+  margin-left: 10px;
+  height: 32px;
+  line-height: 30px;
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+.input-new-tag {
+  width: 90px;
+  margin-left: 10px;
+  vertical-align: bottom;
+}
 </style>

@@ -11,7 +11,7 @@ export default {
       category3Id: "",
       show: true,
       page: 1,
-      limit: 3,
+      limit: 10,
       records: [],
       total: 0,
       scene: 0,
