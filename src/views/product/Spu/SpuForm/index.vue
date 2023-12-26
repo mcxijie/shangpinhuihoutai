@@ -40,7 +40,7 @@ export default {
       tradeMarkList: [],
       spuImageList: [],
       saleAttrList: [],
-      attrId: "",
+      attrIdAndAttrName: "",
     }
   },
   methods: {
@@ -77,6 +77,39 @@ export default {
     handlerSuccess(response, file, fileList) {
       this.spuImageList = fileList;
     },
+    addSaleAttr() {
+      const [baseSaleAttrId, saleAttrName] = this.attrIdAndAttrName.split(":");
+      let newSaleAttr = {
+        baseSaleAttrId,
+        saleAttrName,
+        spuSaleAttrValueList: []
+      };
+      this.spu.spuSaleAttrList.push(newSaleAttr);
+      this.attrIdAndAttrName = "";
+    },
+    addSaleAttrValue(row) {
+      this.$set(row, "inputVisible", true);
+      this.$set(row, "inputValue", "");
+    },
+    handleInputConfirm(row) {
+      const {baseSaleAttrId, inputValue} = row;
+      if (inputValue.trim() === "") {
+        this.$message("属性值不能为空");
+        return;
+      }
+      let result = row.spuSaleAttrValueList.every(item => item.saleAttrValueName !== inputValue);
+      if (!result) {
+        this.$message("属性值不能重复");
+        return;
+      }
+
+      let newSaleAttrValue = {
+        baseSaleAttrId,
+        saleAttrValueName: inputValue
+      };
+      row.spuSaleAttrValueList.push(newSaleAttrValue);
+      row.inputVisible = false;
+    }
   },
   computed: {
     unSelectSaleAttr() {
@@ -119,11 +152,12 @@ export default {
         </el-dialog>
       </el-form-item>
       <el-form-item label="销售属性">
-        <el-select v-model="attrId" :placeholder="`还有${unSelectSaleAttr.length}未选择`">
+        <el-select v-model="attrIdAndAttrName" :placeholder="`还有${unSelectSaleAttr.length}未选择`">
           <el-option v-for="(unselect,index) in unSelectSaleAttr" :key="unselect.id" :label="unselect.name"
-                     :value="unselect.id"></el-option>
+                     :value="`${unselect.id}:${unselect.name}`"></el-option>
         </el-select>
-        <el-button :disabled="!attrId" icon="el-icon-plus" type="primary">添加销售属性</el-button>
+        <el-button :disabled="!attrIdAndAttrName" icon="el-icon-plus" type="primary" @click="addSaleAttr">添加销售属性
+        </el-button>
         <el-table :data="spu.spuSaleAttrList" border style="width: 100%">
           <el-table-column align="center" label="序号" type="index" width="80px"></el-table-column>
           <el-table-column label="属性名" prop="saleAttrName" width="width"></el-table-column>
@@ -133,9 +167,8 @@ export default {
                 {{ tag.saleAttrValueName }}
               </el-tag>
               <el-input v-if="row.inputVisible" ref="saveTagInput" v-model="row.inputValue" class="input-new-tag"
-                        size="small">
-              </el-input>
-              <el-button v-else class="button-new-tag" size="small">添加</el-button>
+                        size="small" @blur="handleInputConfirm(row)"></el-input>
+              <el-button v-else class="button-new-tag" size="small" @click="addSaleAttrValue(row)">添加</el-button>
             </template>
           </el-table-column>
           <el-table-column label="操作" prop="prop" width="width">

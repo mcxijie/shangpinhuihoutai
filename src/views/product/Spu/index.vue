@@ -1,20 +1,20 @@
 <script>
-import SpuForm from "./SpuForm";
-import SkuForm from "./SkuForm";
+import SpuForm from '@/views/product/Spu/SpuForm/index.vue'
+import SkuForm from '@/views/product/Spu/SkuForm/index.vue'
 
 export default {
   name: 'Spu',
   data() {
     return {
-      category1Id: "",
-      category2Id: "",
-      category3Id: "",
+      category1Id: '',
+      category2Id: '',
+      category3Id: '',
       show: true,
       page: 1,
       limit: 10,
       records: [],
       total: 0,
-      scene: 0,
+      scene: 0
     }
   },
   methods: {
