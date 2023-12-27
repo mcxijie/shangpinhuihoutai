@@ -65,6 +65,10 @@ export default {
         this.$message({type: "success", message: "删除成功"});
         this.getSpuList(this.records.length > 1 ? this.page : this.page - 1);
       }
+    },
+    addSku(row) {
+      this.scene = 2;
+      this.$refs.sku.getData(this.category1Id, this.category2Id, row);
     }
   },
   components: {
@@ -88,7 +92,8 @@ export default {
           <el-table-column label="spu描述" prop="description" width="width"></el-table-column>
           <el-table-column label="操作" prop="prop" width="width">
             <template slot-scope="{row,$index}">
-              <hint-button icon="el-icon-plus" size="mini" title="添加sku" type="success"></hint-button>
+              <hint-button icon="el-icon-plus" size="mini" title="添加sku" type="success"
+                           @click="addSku(row)"></hint-button>
               <hint-button icon="el-icon-edit" size="mini" title="修改spu" type="warning"
                            @click="updateSpu(row)"></hint-button>
               <hint-button icon="el-icon-info" size="mini" title="查看当前spu全部sku列表" type="info"></hint-button>
@@ -111,7 +116,7 @@ export default {
         </el-pagination>
       </div>
       <SpuForm v-show="scene === 1" ref="spu" @changeScene="changeScene"></SpuForm>
-      <SkuForm v-show="scene === 2"></SkuForm>
+      <SkuForm v-show="scene === 2" ref="sku"></SkuForm>
     </el-card>
   </div>
 </template>
