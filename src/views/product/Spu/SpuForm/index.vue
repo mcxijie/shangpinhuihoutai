@@ -109,6 +109,35 @@ export default {
       };
       row.spuSaleAttrValueList.push(newSaleAttrValue);
       row.inputVisible = false;
+    },
+    async addOrUpdateSpu() {
+      this.spu.spuImageList = this.spuImageList.map(item => {
+        return {
+          imgName: item.name,
+          imgUrl: (item.response && item.response.data) || item.url
+        }
+      });
+      let result = await this.$API.spu.reqAddOrUpdateSpu(this.spu);
+      if (result.code === 200) {
+        this.$message({type: "success", message: "保存成功"});
+        this.$emit("changeScene", {scene: 0, flag: this.spu.id ? "修改" : "添加"});
+      }
+      Object.assign(this._data, this.$options.data());
+    },
+    async addSpuData(category3Id) {
+      this.spu.category3Id = category3Id;
+      const tradeMarkResult = await this.$API.spu.reqTradeMarkList();
+      if (tradeMarkResult.code === 200) {
+        this.tradeMarkList = tradeMarkResult.data;
+      }
+      const saleResult = await this.$API.spu.reqBaseSaleAttrList();
+      if (saleResult.code === 200) {
+        this.saleAttrList = saleResult.data;
+      }
+    },
+    cancle() {
+      this.$emit("changeScene", {scene: 0, flag: ""});
+      Object.assign(this._data, this.$options.data());
     }
   },
   computed: {
@@ -163,7 +192,8 @@ export default {
           <el-table-column label="属性名" prop="saleAttrName" width="width"></el-table-column>
           <el-table-column label="属性值名称列表" prop="prop" width="width">
             <template slot-scope="{row,$index}">
-              <el-tag v-for="tag in row.spuSaleAttrValueList" :key="tag.id" :disable-transitions="false" closable>
+              <el-tag v-for="(tag,index) in row.spuSaleAttrValueList" :key="tag.id" :disable-transitions="false"
+                      closable @close="row.spuSaleAttrValueList.splice(index,1)">
                 {{ tag.saleAttrValueName }}
               </el-tag>
               <el-input v-if="row.inputVisible" ref="saveTagInput" v-model="row.inputValue" class="input-new-tag"
@@ -173,14 +203,15 @@ export default {
           </el-table-column>
           <el-table-column label="操作" prop="prop" width="width">
             <template slot-scope="{row,$index}">
-              <el-button icon="el-icon-delete" size="mini" type="danger"></el-button>
+              <el-button icon="el-icon-delete" size="mini" type="danger"
+                         @click="spu.spuSaleAttrList.splice($index,1)"></el-button>
             </template>
           </el-table-column>
         </el-table>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary">保存</el-button>
-        <el-button @click="$emit('changeScene', 0)">取消</el-button>
+        <el-button type="primary" @click="addOrUpdateSpu">保存</el-button>
+        <el-button @click="cancle">取消</el-button>
       </el-form-item>
     </el-form>
   </div>

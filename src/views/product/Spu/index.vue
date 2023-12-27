@@ -9,7 +9,6 @@ export default {
       category1Id: '',
       category2Id: '',
       category3Id: '',
-      show: true,
       page: 1,
       limit: 10,
       records: [],
@@ -46,13 +45,26 @@ export default {
     },
     addSpu() {
       this.scene = 1;
+      this.$refs.spu.addSpuData(this.category3Id);
     },
     updateSpu(row) {
       this.scene = 1;
       this.$refs.spu.initSpuData(row);
     },
-    changeScene(scene) {
+    changeScene({scene, flag}) {
       this.scene = scene;
+      if (flag === "修改") {
+        this.getSpuList(this.page);
+      } else {
+        this.getSpuList();
+      }
+    },
+    async deleteSpu(row) {
+      let result = await this.$API.spu.reqDeleteSpu(row.id);
+      if (result.code === 200) {
+        this.$message({type: "success", message: "删除成功"});
+        this.getSpuList(this.records.length > 1 ? this.page : this.page - 1);
+      }
     }
   },
   components: {
@@ -65,7 +77,7 @@ export default {
 <template>
   <div>
     <el-card style="margin: 20px 0px">
-      <CategorySelect :show="!show" @getCategoryId="getCategoryId"></CategorySelect>
+      <CategorySelect :show="scene !== 0" @getCategoryId="getCategoryId"></CategorySelect>
     </el-card>
     <el-card>
       <div v-show="scene === 0">
@@ -80,7 +92,10 @@ export default {
               <hint-button icon="el-icon-edit" size="mini" title="修改spu" type="warning"
                            @click="updateSpu(row)"></hint-button>
               <hint-button icon="el-icon-info" size="mini" title="查看当前spu全部sku列表" type="info"></hint-button>
-              <hint-button icon="el-icon-delete" size="mini" title="删除spu" type="danger"></hint-button>
+              <el-popconfirm title="" @onConfirm="deleteSpu(row)">
+                <hint-button slot="reference" icon="el-icon-delete" size="mini" title="删除spu"
+                             type="danger"></hint-button>
+              </el-popconfirm>
             </template>
           </el-table-column>
         </el-table>

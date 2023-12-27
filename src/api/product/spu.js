@@ -9,3 +9,11 @@ export const reqSpu = (spuId) => request({url: `/admin/product/getSpuById/${spuI
 export const reqTradeMarkList = () => request({url: '/admin/product/baseTrademark/getTrademarkList', method: 'GET'});
 export const reqSpuImageList = (spuId) => request({url: `/admin/product/spuImageList/${spuId}`, method: 'GET'});
 export const reqBaseSaleAttrList = () => request({url: '/admin/product/baseSaleAttrList', method: 'GET'});
+export const reqAddOrUpdateSpu = (spuInfo) => {
+  if (spuInfo.id) {
+    return request({url: `/admin/product/updateSpuInfo`, method: 'POST', data: spuInfo});
+  } else {
+    return request({url: `/admin/product/saveSpuInfo`, method: 'POST', data: spuInfo});
+  }
+};
+export const reqDeleteSpu = (spuId) => request({url: `/admin/product/deleteSpu/${spuId}`, method: 'DELETE'});
