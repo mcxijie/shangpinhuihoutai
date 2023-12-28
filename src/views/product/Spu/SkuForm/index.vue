@@ -61,7 +61,7 @@ export default {
       this.skuInfo.spuId = spu.id;
       this.skuInfo.tmId = spu.tmId;
       this.spu = spu;
-      let result = await this.$API.sku.reqSpuImageList(spu.id);
+      let result = await this.$API.spu.reqSpuImageList(spu.id);
       if (result.code === 200) {
         let list = result.data;
         list.forEach(item => {
@@ -69,17 +69,17 @@ export default {
         });
         this.spuImageList = list;
       }
-      let result1 = await this.$API.sku.reqSpuSaleAttrList(spu.id);
+      let result1 = await this.$API.spu.reqSpuSaleAttrList(spu.id);
       if (result1.code === 200) {
         this.spuSaleAttrList = result1.data;
       }
-      let result2 = await this.$API.sku.reqAttrInfoList(category1Id, category2Id, spu.category3Id);
+      let result2 = await this.$API.spu.reqAttrInfoList(category1Id, category2Id, spu.category3Id);
       if (result2.code === 200) {
         this.attrInfoList = result2.data;
       }
     },
-    handleSelectionChange(parmars) {
-      this.imageList = parmars;
+    handleSelectionChange(params) {
+      this.imageList = params;
     },
     changeDefault(row) {
       this.spuImageList.forEach(item => {
@@ -87,7 +87,46 @@ export default {
       })
       row.isDefault = 1;
       this.skuInfo.skuDefaultImg = row.imgUrl;
+    },
+    cancel() {
+      this.$emit("changeScenes", 0);
+      Object.assign(this._data, this.$options.data());
+    },
+    async save() {
+      const {attrInfoList, skuInfo, spuSaleAttrList, imageList} = this;
+      console.log(imageList);
+      skuInfo.skuAttrValueList = attrInfoList.reduce((prev, item) => {
+        if (item.attrIdAndValueId) {
+          const [attrId, valueId] = item.attrIdAndValueId.split(":");
+          prev.push({attrId, valueId});
+        }
+        return prev;
+      }, []);
+      skuInfo.skuSaleAttrValueList = spuSaleAttrList.reduce((prev, item) => {
+        if (item.attrIdAndValueId) {
+          const [saleAttrId, saleAttrValueId] = item.attrIdAndValueId.split(':');
+          prev.push({saleAttrId, saleAttrValueId});
+        }
+        return prev;
+      }, []);
+      skuInfo.skuImageList = imageList.map(item => {
+        return {
+          imgName: item.imgName,
+          imgUrl: item.imgUrl,
+          isDefault: item.isDefault,
+          spuImgId: item.id
+        }
+      });
+      console.log(skuInfo);
+      let result = await this.$API.spu.reqAddSku(skuInfo);
+      if (result.code === 200) {
+        this.$message({type: 'success', message: '添加SKU成功'})
+        this.$emit('changeScenes', 0);
+      } else {
+        this.$message({type: 'error', message: '添加SKU失败'})
+      }
     }
+
   }
 }
 </script>
@@ -147,8 +186,8 @@ export default {
         </el-table>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary">保存</el-button>
-        <el-button>取消</el-button>
+        <el-button type="primary" @click="save">保存</el-button>
+        <el-button @click="cancel">取消</el-button>
       </el-form-item>
     </el-form>
   </div>

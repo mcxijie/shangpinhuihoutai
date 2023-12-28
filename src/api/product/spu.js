@@ -17,3 +17,13 @@ export const reqAddOrUpdateSpu = (spuInfo) => {
   }
 };
 export const reqDeleteSpu = (spuId) => request({url: `/admin/product/deleteSpu/${spuId}`, method: 'DELETE'});
+
+export const reqSpuSaleAttrList = (spuId) => request({url: `/admin/product/spuSaleAttrList/${spuId}`, method: "GET"});
+
+export const reqAttrInfoList = (category1Id, category2Id, category3Id) => request({
+  url: `/admin/product/attrInfoList/${category1Id}/${category2Id}/${category3Id}`,
+  method: "GET"
+});
+
+export const reqAddSku = (skuInfo) => request({url: `/admin/product/saveSkuInfo`, method: "POST", data: skuInfo});
+export const reqSkuList = (spuId) => request({url: `/admin/product/findBySpuId/${spuId}`, method: "GET"});

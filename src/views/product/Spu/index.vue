@@ -13,7 +13,11 @@ export default {
       limit: 10,
       records: [],
       total: 0,
-      scene: 0
+      scene: 0,
+      dialogTableVisible: false,
+      spu: {},
+      skuList: [],
+      loading: true,
     }
   },
   methods: {
@@ -69,6 +73,23 @@ export default {
     addSku(row) {
       this.scene = 2;
       this.$refs.sku.getData(this.category1Id, this.category2Id, row);
+    },
+    changeScenes(scene) {
+      this.scene = scene;
+    },
+    async handler(spu) {
+      this.dialogTableVisible = true;
+      this.spu = spu;
+      let result = await this.$API.spu.reqSkuList(spu.id);
+      if (result.code === 200) {
+        this.skuList = result.data;
+        this.loading = false;
+      }
+    },
+    close(done) {
+      this.loading = true;
+      this.skuList = [];
+      done();
     }
   },
   components: {
@@ -96,7 +117,8 @@ export default {
                            @click="addSku(row)"></hint-button>
               <hint-button icon="el-icon-edit" size="mini" title="修改spu" type="warning"
                            @click="updateSpu(row)"></hint-button>
-              <hint-button icon="el-icon-info" size="mini" title="查看当前spu全部sku列表" type="info"></hint-button>
+              <hint-button icon="el-icon-info" size="mini" title="查看当前spu全部sku列表" type="info"
+                           @click="handler(row)"></hint-button>
               <el-popconfirm title="" @onConfirm="deleteSpu(row)">
                 <hint-button slot="reference" icon="el-icon-delete" size="mini" title="删除spu"
                              type="danger"></hint-button>
@@ -116,8 +138,20 @@ export default {
         </el-pagination>
       </div>
       <SpuForm v-show="scene === 1" ref="spu" @changeScene="changeScene"></SpuForm>
-      <SkuForm v-show="scene === 2" ref="sku"></SkuForm>
+      <SkuForm v-show="scene === 2" ref="sku" @changeScenes="changeScenes"></SkuForm>
     </el-card>
+    <el-dialog :before-close="close" :title="`${spu.spuName}的SKU列表`" :visible.sync="dialogTableVisible">
+      <el-table v-loading="loading" :data="skuList" border style="width: 100%">
+        <el-table-column label="名称" prop="skuName" width="width"></el-table-column>
+        <el-table-column label="价格" prop="price" width="width"></el-table-column>
+        <el-table-column label="重量" prop="weight" width="width"></el-table-column>
+        <el-table-column label="默认图片" width="width">
+          <template slot-scope="{row,$index}">
+            <img :src="row.skuDefaultImg" alt="" style="width: 100px; height: 100px">
+          </template>
+        </el-table-column>
+      </el-table>
+    </el-dialog>
   </div>
 </template>
 
