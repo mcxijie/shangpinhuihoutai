@@ -117,7 +117,6 @@ export default {
           spuImgId: item.id
         }
       });
-      console.log(skuInfo);
       let result = await this.$API.spu.reqAddSku(skuInfo);
       if (result.code === 200) {
         this.$message({type: 'success', message: '添加SKU成功'})
