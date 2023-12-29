@@ -41,6 +41,21 @@ export const constantRoutes = [
     component: () => import('@/views/404'),
     hidden: true
   },
+
+  {
+    path: '/',
+    component: Layout,
+    redirect: '/dashboard',
+    children: [{
+      path: 'dashboard',
+      name: 'Dashboard',
+      component: () => import('@/views/dashboard/index'),
+      meta: {title: '首页', icon: 'dashboard'}
+    }]
+  },
+]
+
+export const asyncRoutes = [
   {
     name: 'Acl',
     path: '/acl',
@@ -88,53 +103,60 @@ export const constantRoutes = [
     ]
   },
   {
-    path: '/',
+    path: '/product',
     component: Layout,
-    redirect: '/dashboard',
-    children: [{
-      path: 'dashboard',
-      name: 'Dashboard',
-      component: () => import('@/views/dashboard/index'),
-      meta: {title: '首页', icon: 'dashboard'}
-    }]
-  },
-  {
-    path: "/product",
-    component: Layout,
-    name: "Product",
-    meta: {title: "商品管理", icon: "el-icon-goods"},
+    name: 'Product',
+    meta: {title: '商品管理', icon: 'el-icon-goods'},
     children: [
       {
-        path: "tradeMark",
-        name: "TradeMark",
-        component: () => import("@/views/product/tradeMark"),
-        meta: {title: "品牌管理"}
+        path: 'trademark',
+        name: 'TradeMark',
+        component: () => import('@/views/product/tradeMark'),
+        meta: {title: '品牌管理'}
       },
       {
-        path: "attr",
-        name: "Attr",
-        component: () => import("@/views/product/Attr"),
-        meta: {title: "平台属性管理"}
+        path: 'attr',
+        name: 'Attr',
+        component: () => import('@/views/product/Attr'),
+        meta: {title: '平台属性管理'}
       },
       {
-        path: "spu",
-        name: "Spu",
-        component: () => import("@/views/product/Spu"),
-        meta: {title: "Spu管理"}
+        path: 'spu',
+        name: 'Spu',
+        component: () => import('@/views/product/Spu'),
+        meta: {title: 'Spu管理'}
       },
       {
-        path: "sku",
-        name: "Sku",
-        component: () => import("@/views/product/Sku"),
-        meta: {title: "Sku管理"}
+        path: 'sku',
+        name: 'Sku',
+        component: () => import('@/views/product/Sku'),
+        meta: {title: 'Sku管理'}
       },
     ]
   },
+  {
+    path: '/test',
+    component: Layout,
+    name: 'Test',
+    meta: {title: '测试管理', icon: 'el-icon-goods'},
+    children: [
+      {
+        path: 'test1',
+        name: 'Test1',
+        component: () => import('@/views/Test/Test1'),
+        meta: {title: '测试管理1'}
+      },
+      {
+        path: 'test2',
+        name: 'Test2',
+        component: () => import('@/views/Test/Test2'),
+        meta: {title: '测试管理2'}
+      },
+    ]
+  },
+];
 
-
-  // 404 page must be placed at the end !!!
-  {path: '*', redirect: '/404', hidden: true}
-]
+export const anyRoutes = {path: '*', redirect: '/404', hidden: true};
 
 const createRouter = () => new Router({
   // mode: 'history', // require service support

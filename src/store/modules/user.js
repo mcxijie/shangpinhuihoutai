@@ -1,12 +1,16 @@
 import {getInfo, login, logout} from '@/api/user'
 import {getToken, removeToken, setToken} from '@/utils/auth'
-import {resetRouter} from '@/router'
+import router, {anyRoutes, asyncRoutes, constantRoutes, resetRouter} from '@/router'
 
 const getDefaultState = () => {
   return {
     token: getToken(),
     name: '',
-    avatar: ''
+    avatar: '',
+    routes: [],
+    roles: [],
+    button: [],
+    resultAsyncRoutes: []
   }
 }
 
@@ -19,12 +23,29 @@ const mutations = {
   SET_TOKEN: (state, token) => {
     state.token = token
   },
-  SET_NAME: (state, name) => {
-    state.name = name
+  SET_USERINFO: (state, userInfo) => {
+    state.name = userInfo.name;
+    state.avatar = userInfo.avatar;
+    state.routes = userInfo.routes;
+    state.button = userInfo.button;
+    state.roles = userInfo.roles;
   },
-  SET_AVATAR: (state, avatar) => {
-    state.avatar = avatar
+  SET_RESULTASYNCROUTES: (state, asyncRoutes) => {
+    state.resultAsyncRoutes = asyncRoutes;
+    state.resultAllRputes = constantRoutes.concat(state.resultAsyncRoutes, anyRoutes);
+    router.addRoutes(state.resultAsyncRoutes);
   }
+}
+
+const computedAsyncRoutes = (asyncRoutes, routes) => {
+  return asyncRoutes.filter(item => {
+    if (routes.indexOf(item.name) !== -1) {
+      if (item.children && item.children.length) {
+        item.children = computedAsyncRoutes(item.children, routes)
+      }
+      return true
+    }
+  })
 }
 
 const actions = {
@@ -45,17 +66,10 @@ const actions = {
   getInfo({commit, state}) {
     return new Promise((resolve, reject) => {
       getInfo(state.token).then(response => {
-        const {data} = response
-
-        if (!data) {
-          return reject('Verification failed, please Login again.')
-        }
-
-        const {name, avatar} = data
-
-        commit('SET_NAME', name)
-        commit('SET_AVATAR', avatar)
-        resolve(data)
+        const {data} = response;
+        commit('SET_USERINFO', data);
+        commit('SET_RESULTASYNCROUTES', computedAsyncRoutes(asyncRoutes, data.routes));
+        resolve(data);
       }).catch(error => {
         reject(error)
       })
