@@ -18,6 +18,10 @@ export default {
     Sale,
     Observe,
   },
+  mounted() {
+    this.$store.dispatch('getData');
+  },
+
 }
 </script>
 

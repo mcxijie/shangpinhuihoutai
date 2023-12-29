@@ -158,9 +158,7 @@ export default {
         },
         xAxis: {
           data:
-            this.title == "销售额"
-              ? this.listState.orderFullYearAxis
-              : this.listState.userFullYearAxis,
+            this.title == "销售额" ? this.listState.orderFullYearAxis : this.listState.userFullYearAxis,
         },
         series: [
           {
@@ -168,9 +166,7 @@ export default {
             type: "bar",
             barWidth: "60%",
             data:
-              this.title == "销售额"
-                ? this.listState.orderFullYear
-                : this.listState.userFullYear,
+              this.title == "销售额" ? this.listState.orderFullYear : this.listState.userFullYear,
             color: "yellowgreen",
           },
         ],

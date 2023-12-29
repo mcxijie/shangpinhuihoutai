@@ -41,7 +41,8 @@ module.exports = {
         target: 'http://gmall-h5-api.atguigu.cn',
         pathRewrite: {'^/dev-api': ''},
       }
-    }
+    },
+    before: require('./mock/mock-server.js'),
   },
   configureWebpack: {
     // provide the app's title in webpack's name field, so that
